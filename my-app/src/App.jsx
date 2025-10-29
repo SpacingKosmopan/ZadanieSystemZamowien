@@ -10,13 +10,8 @@ import { MainPage } from "./pages/mainmenu";
 import { OrdersPage } from "./pages/orders";
 import { CalendarPage } from "./pages/calendar";
 import { ClientsPage } from "./pages/clients";
-import { useEffect } from "react";
 
 function App() {
-  useEffect(() => {
-    console.log(location.pathname);
-  });
-
   return (
     <>
       <Router>
