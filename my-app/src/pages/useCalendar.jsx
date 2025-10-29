@@ -8,14 +8,26 @@ export function useCalendar() {
       const updated = { ...prev };
       if (!updated[year]) updated[year] = {};
       if (!updated[year][month]) updated[year][month] = {};
-      updated[year][month][day] = data;
+      if (!updated[year][month][day]) updated[year][month][day] = [];
+      const exists = updated[year][month][day].some(
+        (event) => event.title === data.title
+      );
+      if (!exists) updated[year][month][day].push(data);
+      else
+        console.log(
+          "Warning: tried to create two events the same day with the same title!"
+        );
       return updated;
     });
   };
 
-  const getEvent = ({ year, month, day }) => {
+  const getDay = ({ year, month, day }) => {
     return calendar?.[year]?.[month]?.[day] ?? null;
   };
 
-  return { calendar, addEvent, getEvent };
+  const getMonth = ({ year, month }) => {
+    return calendar?.[year]?.[month] ?? null;
+  };
+
+  return { calendar, addEvent, getDay, getMonth };
 }
