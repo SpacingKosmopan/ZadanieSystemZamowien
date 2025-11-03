@@ -10,34 +10,44 @@ import { MainPage } from "./pages/mainmenu";
 import { OrdersPage } from "./pages/orders";
 import { CalendarPage } from "./pages/calendar";
 import { ClientsPage } from "./pages/clients";
+import { createContext } from "react";
+import { useCalendar } from "./pages/useCalendar";
+
+export const MainCalendarContext = createContext();
 
 function App() {
+  const { calendar, addEvent, getDay, getMonth } = useCalendar();
+
   return (
     <>
-      <Router>
-        <nav className="bg-blue-600 text-white shadow-md">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold tracking-wide">
-              🛒 System Zamówień
-            </h1>
+      <MainCalendarContext.Provider
+        value={{ calendar, addEvent, getDay, getMonth }}
+      >
+        <Router>
+          <nav className="bg-blue-600 text-white shadow-md">
+            <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+              <h1 className="text-xl font-bold tracking-wide">
+                🛒 System Zamówień
+              </h1>
 
-            <div className="flex gap-6">
-              <NavLink title="Strona główna" pathName="/" />
-              <NavLink title="Zamówienia" pathName="/orders" />
-              <NavLink title="Klienci" pathName="/clients" />
-              <NavLink title="Kalendarz" pathName="/calendar" />
+              <div className="flex gap-6">
+                <NavLink title="Strona główna" pathName="/" />
+                <NavLink title="Zamówienia" pathName="/orders" />
+                <NavLink title="Klienci" pathName="/clients" />
+                <NavLink title="Kalendarz" pathName="/calendar" />
+              </div>
             </div>
-          </div>
-        </nav>
-        <main className="p-6">
-          <Routes>
-            <Route path="/" element={<MainPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/clients" element={<ClientsPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-          </Routes>
-        </main>
-      </Router>
+          </nav>
+          <main className="p-6">
+            <Routes>
+              <Route path="/" element={<MainPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/clients" element={<ClientsPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+            </Routes>
+          </main>
+        </Router>
+      </MainCalendarContext.Provider>
     </>
   );
 }
