@@ -30,7 +30,7 @@ export const CalendarPage = () => {
 
   useEffect(() => {
     setEventsInMonth(getMonth(currentMonth));
-  }, [calendar]);
+  }, [calendar, currentMonth]);
 
   const handleButton = () => {
     addEvent(
@@ -73,34 +73,35 @@ export const CalendarPage = () => {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-lg font-semibold text-gray-800">
-          {currentMonth.month}/{currentMonth.year}
+      <div className="p-6 bg-gray-50 min-h-[calc(100vh-4rem)]">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-lg font-semibold text-gray-800">
+            {currentMonth.month}/{currentMonth.year}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => changeMonth("prev")}
+              className="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 shadow-sm"
+            >
+              {"<"} Poprzedni miesiąc
+            </button>
+            <button
+              onClick={handleButton}
+              className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow"
+            >
+              DODAJ WYDARZENIE
+            </button>
+            <button
+              onClick={() => changeMonth("next")}
+              className="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 shadow-sm"
+            >
+              Następny miesiąc {">"}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => changeMonth("prev")}
-            className="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 shadow-sm"
-          >
-            {"<"} Poprzedni miesiąc
-          </button>
-          <button
-            onClick={handleButton}
-            className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow"
-          >
-            DODAJ WYDARZENIE
-          </button>
-          <button
-            onClick={() => changeMonth("next")}
-            className="px-3 py-1 rounded-md border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 shadow-sm"
-          >
-            Następny miesiąc {">"}
-          </button>
-        </div>
-      </div>
-      {/* Renderowanie miesiąca */}
-      <div>
-        <table>
+
+        {/* Renderowanie miesiąca */}
+        <table className="w-full border-collapse text-center">
           <thead>
             <tr>
               {daysOfWeek.map((day) => (
@@ -126,34 +127,43 @@ const RenderMonth = (props) => {
   const month = props.month;
   const daysInMonth = props.daysInMonth;
   const monthToRender = [];
-  {
-    /* Puste komórki */
-  }
+
   for (let i = 0; i < firstDay - 1; i++) {
-    monthToRender.push(
-      <td key={"empty-" + i}>
-        <div></div>
-      </td>
-    );
+    monthToRender.push(<td key={"empty-" + i} className="border p-2"></td>);
   }
   for (let day = 1; day <= daysInMonth; day++) {
     const dayData = month.find((d) => d.day === day);
-    monthToRender.push(
-      <td key={day}>
-        <div>
-          {/* Numer dnia */}
-          <div>{day}</div>
+    const isWeekend = (firstDay + day - 2) % 7 >= 5;
 
-          {/* Wydarzenia */}
-          <div>
-            {dayData?.events.map((event, index) => (
-              <div key={index}>
-                <p>{event.title}</p>
-                {event.price && <p>{event.price} zł</p>}
-                {event.description && <p>{event.description}</p>}
-              </div>
-            ))}
-          </div>
+    monthToRender.push(
+      <td
+        key={day}
+        className={`border p-2 align-top ${
+          isWeekend ? "bg-gray-100" : "bg-white"
+        }`}
+      >
+        {/* Numer dnia */}
+        <div className="font-semibold mb-1">{day}</div>
+
+        {/* Wydarzenia */}
+        <div>
+          {dayData?.events.map((event, i) => (
+            <div
+              key={i}
+              className="mb-1 p-1 bg-blue-100 rounded text-xs text-gray-800 shadow-sm max-w-[90%] mx-auto"
+            >
+              <div className="font-semibold">{event.title}</div>
+              {event.price && (
+                <div className="text-green-700 font-bold">{event.price} zł</div>
+              )}
+              {event.description && (
+                <div className="text-gray-600">{event.description}</div>
+              )}
+              {event.client && (
+                <div className="text-gray-500">Klient: {event.client}</div>
+              )}
+            </div>
+          ))}
         </div>
       </td>
     );

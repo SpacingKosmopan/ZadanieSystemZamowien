@@ -10,43 +10,47 @@ import { MainPage } from "./pages/mainmenu";
 import { OrdersPage } from "./pages/orders";
 import { CalendarPage } from "./pages/calendar";
 import { ClientsPage } from "./pages/clients";
-import { createContext } from "react";
+import { createContext, useState } from "react";
 import { useCalendar } from "./pages/useCalendar";
 
 export const MainCalendarContext = createContext();
+export const ClientsContext = createContext();
 
 function App() {
   const { calendar, addEvent, getDay, getMonth } = useCalendar();
+  const [clients, setClients] = useState([]);
 
   return (
     <>
       <MainCalendarContext.Provider
         value={{ calendar, addEvent, getDay, getMonth }}
       >
-        <Router>
-          <nav className="bg-blue-600 text-white shadow-md">
-            <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-              <h1 className="text-xl font-bold tracking-wide">
-                🛒 System Zamówień
-              </h1>
+        <ClientsContext.Provider value={{ clients, setClients }}>
+          <Router>
+            <nav className="bg-blue-600 text-white shadow-md">
+              <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 className="text-xl font-bold tracking-wide">
+                  🛒 System Zamówień
+                </h1>
 
-              <div className="flex gap-6">
-                <NavLink title="Strona główna" pathName="/" />
-                <NavLink title="Zamówienia" pathName="/orders" />
-                <NavLink title="Klienci" pathName="/clients" />
-                <NavLink title="Kalendarz" pathName="/calendar" />
+                <div className="flex gap-6">
+                  <NavLink title="Strona główna" pathName="/" />
+                  <NavLink title="Zamówienia" pathName="/orders" />
+                  <NavLink title="Klienci" pathName="/clients" />
+                  <NavLink title="Kalendarz" pathName="/calendar" />
+                </div>
               </div>
-            </div>
-          </nav>
-          <main className="p-6">
-            <Routes>
-              <Route path="/" element={<MainPage />} />
-              <Route path="/orders" element={<OrdersPage />} />
-              <Route path="/clients" element={<ClientsPage />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-            </Routes>
-          </main>
-        </Router>
+            </nav>
+            <main className="p-6">
+              <Routes>
+                <Route path="/" element={<MainPage />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/clients" element={<ClientsPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+              </Routes>
+            </main>
+          </Router>
+        </ClientsContext.Provider>
       </MainCalendarContext.Provider>
     </>
   );
