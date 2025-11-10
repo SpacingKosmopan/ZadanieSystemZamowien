@@ -3,10 +3,12 @@ import { useContext } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useNavigate } from "react-router-dom";
 
 export const OrdersPage = (props) => {
   const { calendar, addEvent, getDay, getMonth } =
     useContext(MainCalendarContext);
+  const navigate = useNavigate();
 
   const schema = yup.object().shape({
     title: yup.string().required("Musisz podać tytuł zamówienia"),
@@ -28,6 +30,7 @@ export const OrdersPage = (props) => {
         description: data.description,
       }
     );
+    navigate("/calendar");
   };
 
   return (

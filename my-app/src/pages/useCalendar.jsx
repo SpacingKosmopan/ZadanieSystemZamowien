@@ -19,6 +19,10 @@ export function useCalendar() {
    * @returns {void}
    */
   const addEvent = ({ year, month, day }, data) => {
+    if (day < 1 || month < 1 || month > 12 || month > 12) {
+      console.warn("Tried to create Event in non existing day!");
+      return;
+    }
     setCalendar((prev) => {
       const updated = { ...prev };
       if (!updated[year]) updated[year] = {};
@@ -29,8 +33,8 @@ export function useCalendar() {
       );
       if (!exists) updated[year][month][day].push(data);
       else
-        console.log(
-          "Warning: tried to create two events the same day with the same title!"
+        console.warn(
+          "Tried to create two events the same day with the same title!"
         );
       return updated;
     });
@@ -58,6 +62,7 @@ export function useCalendar() {
       events,
     }));
   };
+  // {console.log(month[0]?.events.map((e) => e.title))}
 
   return { calendar, addEvent, getDay, getMonth };
 }
