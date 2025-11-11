@@ -3,7 +3,7 @@ import { MainCalendarContext } from "../App";
 import { useContext, useState, useEffect, use } from "react";
 
 export const CalendarPage = () => {
-  const { calendar, addEvent, getDay, getMonth } =
+  const { calendar, addEvent, getMonth, removeEvent } =
     useContext(MainCalendarContext);
   const daysOfWeek = ["Pon", "Wto", "Śro", "Czw", "Pią", "Sob", "Nie"];
   const [currentMonth, setCurrentMonth] = useState({ year: 2025, month: 11 });
@@ -114,6 +114,8 @@ export const CalendarPage = () => {
               firstDay={firstDay}
               month={eventsInMonth}
               daysInMonth={daysInMonths[currentMonth.month]}
+              removeEvent={removeEvent}
+              currentMonth={currentMonth}
             />
           </tbody>
         </table>
@@ -152,7 +154,25 @@ const RenderMonth = (props) => {
               key={i}
               className="mb-1 p-1 bg-blue-100 rounded text-xs text-gray-800 shadow-sm max-w-[90%] mx-auto"
             >
-              <div className="font-semibold">{event.title}</div>
+              <div className="font-semibold">
+                {event.title}
+
+                <button
+                  onClick={() =>
+                    props.removeEvent(
+                      {
+                        year: props.currentMonth.year,
+                        month: props.currentMonth.month,
+                        day: day,
+                      },
+                      event.title
+                    )
+                  }
+                  className="ml-2 text-red-500 font-bold"
+                >
+                  ❌
+                </button>
+              </div>
               {event.price && (
                 <div className="text-green-700 font-bold">{event.price} zł</div>
               )}

@@ -10,20 +10,28 @@ import { MainPage } from "./pages/mainmenu";
 import { OrdersPage } from "./pages/orders";
 import { CalendarPage } from "./pages/calendar";
 import { ClientsPage } from "./pages/clients";
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import { useCalendar } from "./pages/useCalendar";
+import { CatPage } from "./pages/cat";
 
 export const MainCalendarContext = createContext();
 export const ClientsContext = createContext();
 
 function App() {
-  const { calendar, addEvent, getDay, getMonth } = useCalendar();
-  const [clients, setClients] = useState([]);
+  const { calendar, addEvent, getDay, getMonth, removeEvent } = useCalendar();
+  const [clients, setClients] = useState(() => {
+    const savedClients = localStorage.getItem("clients");
+    return savedClients ? JSON.parse(savedClients) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("clients", JSON.stringify(clients));
+  }, [clients]);
 
   return (
     <>
       <MainCalendarContext.Provider
-        value={{ calendar, addEvent, getDay, getMonth }}
+        value={{ calendar, addEvent, getDay, getMonth, removeEvent }}
       >
         <ClientsContext.Provider value={{ clients, setClients }}>
           <Router>
@@ -38,6 +46,7 @@ function App() {
                   <NavLink title="Zamówienia" pathName="/orders" />
                   <NavLink title="Klienci" pathName="/clients" />
                   <NavLink title="Kalendarz" pathName="/calendar" />
+                  <NavLink title="Kociekawostka" pathName="/cat" />
                 </div>
               </div>
             </nav>
@@ -47,6 +56,7 @@ function App() {
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/clients" element={<ClientsPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/cat" element={<CatPage />} />
               </Routes>
             </main>
           </Router>

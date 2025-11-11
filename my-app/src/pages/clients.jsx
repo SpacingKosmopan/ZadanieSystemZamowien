@@ -7,6 +7,18 @@ export const ClientsPage = (props) => {
   const [createClient, setCreateClient] = useState(false);
   const { clients, setClients } = useContext(ClientsContext);
 
+  const deleteClient = (client) => {
+    const confirmDelete = window.confirm(
+      "Czy jesteś pewien, że chchesz usunąć " +
+        client.name +
+        " " +
+        client.surname +
+        "?"
+    );
+    if (confirmDelete)
+      setClients((prev) => prev.filter((_client) => _client !== client));
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <button
@@ -30,6 +42,12 @@ export const ClientsPage = (props) => {
             >
               <h2 className="text-lg font-bold text-gray-800">
                 {client.name} {client.surname}
+                <button
+                  onClick={() => deleteClient(client)}
+                  className="ml-4 px-2 py-1 bg-orange-200 text-white rounded hover:bg-green-700 text-sm"
+                >
+                  ❌
+                </button>
               </h2>
               <p className="text-gray-600">
                 <span className="font-semibold">Telefon:</span> {client.phone}

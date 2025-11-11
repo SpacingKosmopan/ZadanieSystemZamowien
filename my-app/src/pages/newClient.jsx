@@ -78,6 +78,7 @@ export const NewClientPage = ({ clients, setClients, setCreateClient }) => {
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
           value="Dodaj klienta"
         />
+        <button onClick={() => setCreateClient(null)}>Anuluj</button>
       </form>
     </div>
   );
