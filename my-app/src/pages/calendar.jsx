@@ -1,4 +1,3 @@
-import { get, set } from "react-hook-form";
 import { MainCalendarContext } from "../App";
 import { useContext, useState, useEffect, use } from "react";
 
@@ -7,7 +6,7 @@ export const CalendarPage = () => {
     useContext(MainCalendarContext);
   const daysOfWeek = ["Pon", "Wto", "Śro", "Czw", "Pią", "Sob", "Nie"];
   const [currentMonth, setCurrentMonth] = useState({ year: 2025, month: 11 });
-  const [firstDay, setFirstDay] = useState(0);
+  const [firstDay, setFirstDay] = useState(1);
   const [eventsInMonth, setEventsInMonth] = useState([]);
   const daysInMonths = {
     1: 31,
@@ -60,6 +59,8 @@ export const CalendarPage = () => {
             month: currentMonth.month - 1,
           });
         }
+        break;
+      default:
         break;
     }
   };
@@ -133,19 +134,19 @@ const RenderMonth = (props) => {
   for (let i = 0; i < firstDay - 1; i++) {
     monthToRender.push(<td key={"empty-" + i} className="border p-2"></td>);
   }
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dayData = month.find((d) => d.day === day);
-    const isWeekend = (firstDay + day - 2) % 7 >= 5;
+  for (let n_day = 1; n_day <= daysInMonth; n_day++) {
+    const dayData = month.find((d) => d.day === n_day);
+    const isWeekend = (firstDay + n_day - 2) % 7 >= 5;
 
     monthToRender.push(
       <td
-        key={day}
+        key={n_day}
         className={`border p-2 align-top ${
           isWeekend ? "bg-gray-100" : "bg-white"
         }`}
       >
         {/* Numer dnia */}
-        <div className="font-semibold mb-1">{day}</div>
+        <div className="font-semibold mb-1">{n_day}</div>
 
         {/* Wydarzenia */}
         <div>
@@ -163,7 +164,7 @@ const RenderMonth = (props) => {
                       {
                         year: props.currentMonth.year,
                         month: props.currentMonth.month,
-                        day: day,
+                        day: n_day,
                       },
                       event.title
                     )
