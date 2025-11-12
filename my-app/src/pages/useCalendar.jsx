@@ -40,7 +40,7 @@ export function useCalendar() {
         (event) => event.title === data.title
       );
       if (!exists) updated[year][month][day].push(data);
-      else return prev;
+      return updated;
     });
   };
 

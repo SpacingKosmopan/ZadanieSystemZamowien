@@ -7,8 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { ClientsContext } from "../App";
 
 export const OrdersPage = (props) => {
-  const { calendar, addEvent, getDay, getMonth } =
-    useContext(MainCalendarContext);
+  const { addEvent } = useContext(MainCalendarContext);
   const { clients } = useContext(ClientsContext);
   const navigate = useNavigate();
 
@@ -29,7 +28,7 @@ export const OrdersPage = (props) => {
       ),
   });
 
-  const confirmedNewSubmit = (data) => {
+  const ConfirmedNewSubmit = (data) => {
     const [year, month, day] = data.date.split("-").map(Number);
     addEvent(
       { year: year, month: month, day: day },
@@ -45,15 +44,7 @@ export const OrdersPage = (props) => {
 
   return (
     <div>
-      {props?.editDay ? (
-        <EditOrderPage
-          schema={schema}
-          //confirmedSubmit={confirmedSubmit}
-          editDay={props.editDay}
-        />
-      ) : (
-        <NewOrderPage schema={schema} confirmedNewSubmit={confirmedNewSubmit} />
-      )}
+      <NewOrderPage schema={schema} confirmedNewSubmit={ConfirmedNewSubmit} />
     </div>
   );
 };
