@@ -23,6 +23,7 @@ function App() {
     const savedClients = localStorage.getItem("clients");
     return savedClients ? JSON.parse(savedClients) : [];
   });
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("clients", JSON.stringify(clients));
@@ -41,7 +42,20 @@ function App() {
                   🛒 System Zamówień
                 </h1>
 
-                <div className="flex gap-6">
+                <div className="md:hidden">
+                  <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="focus:outline-none"
+                  >
+                    {menuOpen ? "✖" : "☰"}
+                  </button>
+                </div>
+
+                <div
+                  className={`flex-col md:flex md:flex-row gap-2 md:gap-6 absolute md:static top-16 left-0 w-full md:w-auto bg-blue-600 md:bg-transparent transition-all duration-300 ${
+                    menuOpen ? "flex" : "hidden"
+                  }`}
+                >
                   <NavLink title="Strona główna" pathName="/" />
                   <NavLink title="Zamówienia" pathName="/orders" />
                   <NavLink title="Klienci" pathName="/clients" />

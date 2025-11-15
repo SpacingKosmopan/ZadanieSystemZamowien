@@ -26,7 +26,7 @@ export const CatPage = () => {
       >
         Wygeneruj
       </button>
-      <div className="mt-4 p-4 bg-gradient-to-r from-white to-gray-50 border border-gray-100 rounded-lg">
+      <div className="mt-4 p-4 bg-linear-to-r from-white to-gray-50 border border-gray-100 rounded-lg">
         <p className="text-gray-800 leading-relaxed">{fact}</p>
       </div>
     </div>
