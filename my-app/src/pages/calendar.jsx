@@ -1,14 +1,20 @@
 import { MainCalendarContext } from "../App";
 import { useContext, useState, useEffect, use } from "react";
+import { useNavigate } from "react-router-dom";
+import { ClientsContext } from "../App";
 
 export const CalendarPage = () => {
-  const { calendar, addEvent, getMonth, removeEvent } =
+  const { calendar, addEvent, getMonth, removeEvent, updateEvent } =
     useContext(MainCalendarContext);
+  const { clients } = useContext(ClientsContext);
   const daysOfWeek = ["Pon", "Wto", "Śro", "Czw", "Pią", "Sob", "Nie"];
   const [currentMonth, setCurrentMonth] = useState({ year: 2025, month: 11 });
   const [firstDay, setFirstDay] = useState(1);
   const [eventsInMonth, setEventsInMonth] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+
   const daysInMonths = {
     1: 31,
     2: 28,
@@ -32,12 +38,24 @@ export const CalendarPage = () => {
     setEventsInMonth(getMonth(currentMonth));
   }, [calendar, currentMonth]);
 
-  const handleButton = () => {
-    addEvent(
-      { year: 2025, month: 11, day: 29 },
-      { title: "Tort urodzinowy", price: 200, description: "Czekoladowy" }
-    );
-  };
+  const [editData, setEditData] = useState({
+    title: "",
+    price: "",
+    description: "",
+    client: "",
+  });
+
+  useEffect(() => {
+    if (selectedEvent) {
+      setEditData({
+        title: selectedEvent.title || "",
+        price: selectedEvent.price || "",
+        description: selectedEvent.description || "",
+        client: selectedEvent.client || "",
+      });
+      setIsEditing(false);
+    }
+  }, [selectedEvent]);
 
   const changeMonth = (direction) => {
     switch (direction) {
@@ -88,7 +106,7 @@ export const CalendarPage = () => {
               {"<"} Poprzedni miesiąc
             </button>
             <button
-              onClick={handleButton}
+              onClick={() => navigate(`/orders`)}
               className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow"
             >
               DODAJ WYDARZENIE
@@ -132,28 +150,155 @@ export const CalendarPage = () => {
 
           {/* Okno */}
           <div className="relative bg-white p-6 rounded-xl shadow-xl max-w-md w-full z-10">
-            <h2 className="text-xl font-bold mb-4">{selectedEvent.title}</h2>
+            {!isEditing ? (
+              <>
+                <h2 className="text-xl font-bold mb-4">
+                  {selectedEvent.title}
+                </h2>
+                {selectedEvent.price != null && (
+                  <p className="mb-2 font-semibold text-green-700">
+                    Cena: {selectedEvent.price} zł
+                  </p>
+                )}
+                {selectedEvent.description && (
+                  <p className="mb-2 text-gray-700">
+                    {selectedEvent.description}
+                  </p>
+                )}
+                {selectedEvent.client && (
+                  <div className="mb-4">
+                    <button
+                      onClick={() =>
+                        navigate(`/clients?selected=${selectedEvent.client.id}`)
+                      }
+                      className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition"
+                    >
+                      🔍 {selectedEvent.client}
+                    </button>
+                  </div>
+                )}
 
-            {selectedEvent.price && (
-              <p className="mb-2 font-semibold text-green-700">
-                Cena: {selectedEvent.price} zł
-              </p>
+                {/* Przyciski */}
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm font-medium hover:bg-gray-300 transition"
+                  >
+                    ✏️ Edytuj
+                  </button>
+                  <button
+                    onClick={() => {
+                      const confirmDelete = window.confirm(
+                        `Czy na pewno chcesz usunąć wydarzenie: ${selectedEvent.title}?`
+                      );
+                      if (confirmDelete) {
+                        removeEvent(
+                          {
+                            year: selectedEvent.year,
+                            month: selectedEvent.month,
+                            day: selectedEvent.day,
+                          },
+                          selectedEvent.title
+                        );
+                        setSelectedEvent(null);
+                      }
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-1 rounded bg-red-100 text-red-700 text-sm font-medium hover:bg-red-200 transition"
+                  >
+                    ❌ Usuń
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setSelectedEvent(null)}
+                  className="px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-700"
+                >
+                  Zamknij
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-xl font-bold mb-4">Edytuj wydarzenie</h2>
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="text"
+                    placeholder="Tytuł"
+                    value={editData.title || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, title: e.target.value })
+                    }
+                    className="border px-2 py-1 rounded"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Cena"
+                    value={editData.price || ""}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        price: Number(e.target.value),
+                      })
+                    }
+                    className="border px-2 py-1 rounded"
+                  />
+                  <textarea
+                    placeholder="Opis"
+                    value={editData.description || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, description: e.target.value })
+                    }
+                    className="border px-2 py-1 rounded"
+                  />
+                  <select
+                    value={editData.client}
+                    onChange={(e) =>
+                      setEditData({ ...editData, client: e.target.value })
+                    }
+                    className="border px-2 py-1 rounded"
+                  >
+                    <option value="">-- Wybierz klienta --</option>
+                    {clients
+                      .sort((a, b) => a.surname.localeCompare(b.surname))
+                      .map((client, i) => (
+                        <option
+                          key={i}
+                          value={`${client.name} ${client.surname}`}
+                        >
+                          {client.name} {client.surname}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => {
+                      updateEvent(
+                        {
+                          year: selectedEvent.year,
+                          month: selectedEvent.month,
+                          day: selectedEvent.day,
+                        },
+                        selectedEvent.title,
+                        editData
+                      );
+                      setSelectedEvent({ ...selectedEvent, ...editData });
+                      setIsEditing(false);
+                    }}
+                    className="flex-1 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition"
+                  >
+                    💾 Zapisz
+                  </button>
+
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="flex-1 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                  >
+                    ↩ Anuluj
+                  </button>
+                </div>
+              </>
             )}
-
-            {selectedEvent.description && (
-              <p className="mb-2 text-gray-700">{selectedEvent.description}</p>
-            )}
-
-            {selectedEvent.client && (
-              <p className="text-gray-600">Klient: {selectedEvent.client}</p>
-            )}
-
-            <button
-              onClick={() => setSelectedEvent(null)}
-              className="mt-4 px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-700"
-            >
-              Zamknij
-            </button>
           </div>
         </div>
       )}
@@ -196,7 +341,14 @@ const RenderMonthGrid = (props) => {
           {events.map((event, i) => (
             <div
               key={i}
-              onClick={() => setSelectedEvent(event)}
+              onClick={() =>
+                setSelectedEvent({
+                  ...event,
+                  year: currentMonth.year,
+                  month: currentMonth.month,
+                  day: n_day,
+                })
+              }
               className="p-[2px] bg-blue-100 rounded text-[10px] shadow-sm cursor-pointer hover:bg-blue-200 transition"
             >
               {event.title}

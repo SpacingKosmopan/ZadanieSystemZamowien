@@ -75,6 +75,30 @@ export function useCalendar() {
   };
 
   /**
+   *
+   * @param {*} param0
+   * @param {*} oldTitle
+   * @param {*} newData
+   */
+  const updateEvent = ({ year, month, day }, oldTitle, newData) => {
+    setCalendar((prev) => {
+      const updated = { ...prev };
+      const dayEvents = updated?.[year]?.[month]?.[day] ?? [];
+      const eventIndex = dayEvents.findIndex((e) => e.title === oldTitle);
+      if (eventIndex === -1) {
+        console.error("Nie znaleziono wydarzenia do edycji!");
+        return prev;
+      }
+      // Nadpisanie istniejącego wydarzenia
+      updated[year][month][day][eventIndex] = {
+        ...dayEvents[eventIndex],
+        ...newData,
+      };
+      return updated;
+    });
+  };
+
+  /**
    * @param {{ year:number, month:number, day:number }} DateObject - When event is happening
    * @returns {Array|null} Array of events in day
    * @example getDay({ year: 2023, month: 12, day: 24 }) -> [ { title: "Christmas Party", description: "At my place!" } ] | null
@@ -98,5 +122,5 @@ export function useCalendar() {
   };
   // {console.log(month[0]?.events.map((e) => e.title))}
 
-  return { calendar, addEvent, getDay, getMonth, removeEvent };
+  return { calendar, addEvent, getDay, getMonth, removeEvent, updateEvent };
 }

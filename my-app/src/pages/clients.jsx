@@ -2,10 +2,18 @@ import { useState } from "react";
 import { NewClientPage } from "./newClient";
 import { ClientsContext } from "../App";
 import { useContext } from "react";
+import { useSearchParams } from "react-router-dom";
 
-export const ClientsPage = (props) => {
+export const ClientsPage = () => {
   const [createClient, setCreateClient] = useState(false);
   const { clients, setClients } = useContext(ClientsContext);
+
+  const [searchParams] = useSearchParams();
+  const selectedId = searchParams.get("selected");
+
+  const highlightedClient = selectedId
+    ? clients.find((c) => String(c.id) === String(selectedId))
+    : null;
 
   const deleteClient = (client) => {
     const confirmDelete = window.confirm(
@@ -27,6 +35,18 @@ export const ClientsPage = (props) => {
       >
         Dodaj nowego klienta
       </button>
+
+      {highlightedClient && (
+        <div className="p-4 mb-6 bg-yellow-100 border-l-4 border-yellow-500 rounded shadow">
+          <h2 className="text-xl font-bold">
+            Wybrany klient: {highlightedClient.name} {highlightedClient.surname}
+          </h2>
+          <p className="text-gray-700">Telefon: {highlightedClient.phone}</p>
+          <p className="text-gray-700">Email: {highlightedClient.email}</p>
+          <p className="text-gray-700">Adres: {highlightedClient.adress}</p>
+        </div>
+      )}
+
       {createClient ? (
         <NewClientPage
           clients={clients}
@@ -40,11 +60,13 @@ export const ClientsPage = (props) => {
               key={index}
               className="bg-white p-4 rounded shadow hover:shadow-lg transition-shadow"
             >
-              <h2 className="text-lg font-bold text-gray-800">
-                {client.name} {client.surname}
+              <h2 className="text-lg font-bold text-gray-800 flex justify-between items-center">
+                <span>
+                  {client.name} {client.surname}
+                </span>
                 <button
                   onClick={() => deleteClient(client)}
-                  className="ml-4 px-2 py-1 bg-orange-200 text-white rounded hover:bg-green-700 text-sm"
+                  className="px-2 py-1 bg-orange-200 text-white rounded hover:bg-green-700 text-sm"
                 >
                   ❌
                 </button>

@@ -18,7 +18,8 @@ export const MainCalendarContext = createContext();
 export const ClientsContext = createContext();
 
 function App() {
-  const { calendar, addEvent, getDay, getMonth, removeEvent } = useCalendar();
+  const { calendar, addEvent, getDay, getMonth, removeEvent, updateEvent } =
+    useCalendar();
   const [clients, setClients] = useState(() => {
     const savedClients = localStorage.getItem("clients");
     return savedClients ? JSON.parse(savedClients) : [];
@@ -32,7 +33,14 @@ function App() {
   return (
     <>
       <MainCalendarContext.Provider
-        value={{ calendar, addEvent, getDay, getMonth, removeEvent }}
+        value={{
+          calendar,
+          addEvent,
+          getDay,
+          getMonth,
+          removeEvent,
+          updateEvent,
+        }}
       >
         <ClientsContext.Provider value={{ clients, setClients }}>
           <Router>
@@ -52,7 +60,7 @@ function App() {
                 </div>
 
                 <div
-                  className={`flex-col md:flex md:flex-row gap-2 md:gap-6 absolute md:static top-16 left-0 w-full md:w-auto bg-blue-600 md:bg-transparent transition-all duration-300 ${
+                  className={`flex-col md:flex md:flex-row gap-2 md:gap-6 absolute md:static top-16 left-0 w-full md:w-auto bg-blue-600 md:bg-transparent z-50 transition-all duration-300 ${
                     menuOpen ? "flex" : "hidden"
                   }`}
                 >
