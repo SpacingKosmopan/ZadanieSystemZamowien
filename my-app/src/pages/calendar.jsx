@@ -8,6 +8,7 @@ export const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState({ year: 2025, month: 11 });
   const [firstDay, setFirstDay] = useState(1);
   const [eventsInMonth, setEventsInMonth] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const daysInMonths = {
     1: 31,
     2: 28,
@@ -111,26 +112,68 @@ export const CalendarPage = () => {
               {day}
             </div>
           ))}
-
           <RenderMonthGrid
             firstDay={firstDay}
             month={eventsInMonth}
             daysInMonth={daysInMonths[currentMonth.month]}
             removeEvent={removeEvent}
             currentMonth={currentMonth}
+            setSelectedEvent={setSelectedEvent}
           />
         </div>
       </div>
+      {selectedEvent && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          {/* Tło */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedEvent(null)}
+          ></div>
+
+          {/* Okno */}
+          <div className="relative bg-white p-6 rounded-xl shadow-xl max-w-md w-full z-10">
+            <h2 className="text-xl font-bold mb-4">{selectedEvent.title}</h2>
+
+            {selectedEvent.price && (
+              <p className="mb-2 font-semibold text-green-700">
+                Cena: {selectedEvent.price} zł
+              </p>
+            )}
+
+            {selectedEvent.description && (
+              <p className="mb-2 text-gray-700">{selectedEvent.description}</p>
+            )}
+
+            {selectedEvent.client && (
+              <p className="text-gray-600">Klient: {selectedEvent.client}</p>
+            )}
+
+            <button
+              onClick={() => setSelectedEvent(null)}
+              className="mt-4 px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-700"
+            >
+              Zamknij
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
 
 const RenderMonthGrid = (props) => {
-  const { firstDay, month, daysInMonth, removeEvent, currentMonth } = props;
+  const {
+    firstDay,
+    month,
+    daysInMonth,
+    removeEvent,
+    currentMonth,
+    setSelectedEvent,
+  } = props;
 
   const days = [];
 
-  // Puste pola przed 1 dniem miesiąca
+  // Puste pola przed 1 dniem
   for (let i = 0; i < firstDay - 1; i++) {
     days.push(<div key={"empty-" + i} className="border h-20 bg-white"></div>);
   }
@@ -143,44 +186,20 @@ const RenderMonthGrid = (props) => {
     days.push(
       <div
         key={n_day}
-        className="border h-20 bg-white flex flex-col p-1 overflow-hidden"
+        className="border h-20 bg-white flex flex-col p-[2px] overflow-hidden text-[11px]"
       >
-        <div className="font-semibold mb-1">{n_day}</div>
+        {/* Numer dnia */}
+        <div className="font-semibold mb-1 text-[12px]">{n_day}</div>
 
-        <div className="flex-1 overflow-y-auto space-y-1">
+        {/* Wydarzenia */}
+        <div className="flex-1 overflow-y-auto space-y-[2px]">
           {events.map((event, i) => (
             <div
               key={i}
-              className="p-[2px] bg-blue-100 rounded text-[10px] shadow-sm"
+              onClick={() => setSelectedEvent(event)}
+              className="p-[2px] bg-blue-100 rounded text-[10px] shadow-sm cursor-pointer hover:bg-blue-200 transition"
             >
-              <div className="font-semibold flex justify-between">
-                {event.title}
-                <button
-                  onClick={() =>
-                    removeEvent(
-                      {
-                        year: currentMonth.year,
-                        month: currentMonth.month,
-                        day: n_day,
-                      },
-                      event.title
-                    )
-                  }
-                  className="text-red-500"
-                >
-                  ❌
-                </button>
-              </div>
-
-              {event.price && (
-                <div className="text-green-700">{event.price} zł</div>
-              )}
-              {event.description && (
-                <div className="text-gray-600">{event.description}</div>
-              )}
-              {event.client && (
-                <div className="text-gray-500">Klient: {event.client}</div>
-              )}
+              {event.title}
             </div>
           ))}
         </div>
