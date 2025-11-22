@@ -31,7 +31,7 @@ export default function LoginForm({ setUser }) {
       if (error == "FirebaseError: Firebase: Error (auth/invalid-credential).")
         window.alert("Nieprawidłowe dane logowania. Spróbuj ponownie.");
 
-      console.error("Auth error:", error);
+      //console.error("Auth error:", error);
     }
   };
 
