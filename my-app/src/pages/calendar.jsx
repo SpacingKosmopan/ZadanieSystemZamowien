@@ -102,80 +102,78 @@ export const CalendarPage = () => {
         </div>
 
         {/* Renderowanie miesiąca */}
-        <table className="w-full border-collapse text-center">
-          <thead>
-            <tr>
-              {daysOfWeek.map((day) => (
-                <th key={day}>{day}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <RenderMonth
-              firstDay={firstDay}
-              month={eventsInMonth}
-              daysInMonth={daysInMonths[currentMonth.month]}
-              removeEvent={removeEvent}
-              currentMonth={currentMonth}
-            />
-          </tbody>
-        </table>
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {daysOfWeek.map((day) => (
+            <div
+              key={day}
+              className="font-semibold py-1 text-sm bg-gray-200 border"
+            >
+              {day}
+            </div>
+          ))}
+
+          <RenderMonthGrid
+            firstDay={firstDay}
+            month={eventsInMonth}
+            daysInMonth={daysInMonths[currentMonth.month]}
+            removeEvent={removeEvent}
+            currentMonth={currentMonth}
+          />
+        </div>
       </div>
     </>
   );
 };
 
-const RenderMonth = (props) => {
-  const firstDay = props.firstDay;
-  const month = props.month;
-  const daysInMonth = props.daysInMonth;
-  const monthToRender = [];
+const RenderMonthGrid = (props) => {
+  const { firstDay, month, daysInMonth, removeEvent, currentMonth } = props;
 
+  const days = [];
+
+  // Puste pola przed 1 dniem miesiąca
   for (let i = 0; i < firstDay - 1; i++) {
-    monthToRender.push(<td key={"empty-" + i} className="border p-2"></td>);
+    days.push(<div key={"empty-" + i} className="border h-20 bg-white"></div>);
   }
+
+  // Dni miesiąca
   for (let n_day = 1; n_day <= daysInMonth; n_day++) {
     const dayData = month.find((d) => d.day === n_day);
-    const isWeekend = (firstDay + n_day - 2) % 7 >= 5;
+    const events = dayData?.events || [];
 
-    monthToRender.push(
-      <td
+    days.push(
+      <div
         key={n_day}
-        className={`border p-2 align-top ${
-          isWeekend ? "bg-gray-100" : "bg-white"
-        }`}
+        className="border h-20 bg-white flex flex-col p-1 overflow-hidden"
       >
-        {/* Numer dnia */}
         <div className="font-semibold mb-1">{n_day}</div>
 
-        {/* Wydarzenia */}
-        <div>
-          {dayData?.events.map((event, i) => (
+        <div className="flex-1 overflow-y-auto space-y-1">
+          {events.map((event, i) => (
             <div
               key={i}
-              className="mb-1 p-1 bg-blue-100 rounded text-xs text-gray-800 shadow-sm max-w-[90%] mx-auto"
+              className="p-[2px] bg-blue-100 rounded text-[10px] shadow-sm"
             >
-              <div className="font-semibold">
+              <div className="font-semibold flex justify-between">
                 {event.title}
-
                 <button
                   onClick={() =>
-                    props.removeEvent(
+                    removeEvent(
                       {
-                        year: props.currentMonth.year,
-                        month: props.currentMonth.month,
+                        year: currentMonth.year,
+                        month: currentMonth.month,
                         day: n_day,
                       },
                       event.title
                     )
                   }
-                  className="ml-2 text-red-500 font-bold"
+                  className="text-red-500"
                 >
                   ❌
                 </button>
               </div>
+
               {event.price && (
-                <div className="text-green-700 font-bold">{event.price} zł</div>
+                <div className="text-green-700">{event.price} zł</div>
               )}
               {event.description && (
                 <div className="text-gray-600">{event.description}</div>
@@ -186,14 +184,9 @@ const RenderMonth = (props) => {
             </div>
           ))}
         </div>
-      </td>
+      </div>
     );
   }
-  return (
-    <>
-      {monthToRender.map((day, i) =>
-        i % 7 === 0 ? <tr key={i}>{monthToRender.slice(i, i + 7)}</tr> : null
-      )}
-    </>
-  );
+
+  return <>{days}</>;
 };
