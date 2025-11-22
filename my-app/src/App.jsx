@@ -64,11 +64,31 @@ function App() {
                     menuOpen ? "flex" : "hidden"
                   }`}
                 >
-                  <NavLink title="Strona główna" pathName="/" />
-                  <NavLink title="Zamówienia" pathName="/orders" />
-                  <NavLink title="Klienci" pathName="/clients" />
-                  <NavLink title="Kalendarz" pathName="/calendar" />
-                  <NavLink title="Kociekawostka" pathName="/cat" />
+                  <NavLink
+                    title="Strona główna"
+                    pathName="/"
+                    setMenuOpen={setMenuOpen}
+                  />
+                  <NavLink
+                    title="Zamówienia"
+                    pathName="/orders"
+                    setMenuOpen={setMenuOpen}
+                  />
+                  <NavLink
+                    title="Klienci"
+                    pathName="/clients"
+                    setMenuOpen={setMenuOpen}
+                  />
+                  <NavLink
+                    title="Kalendarz"
+                    pathName="/calendar"
+                    setMenuOpen={setMenuOpen}
+                  />
+                  <NavLink
+                    title="Kociekawostka"
+                    pathName="/cat"
+                    setMenuOpen={setMenuOpen}
+                  />
                 </div>
               </div>
             </nav>
@@ -88,24 +108,25 @@ function App() {
   );
 }
 
-const NavLink = (props) => {
+const NavLink = ({ title, pathName, setMenuOpen }) => {
+  const location = useLocation();
+  const isActive = pathName === location.pathname;
+
   const linkNormal =
     "relative px-3 py-2 rounded-full transition-all duration-300 text-white bg-blue-600";
   const linkHover = "hover:bg-blue-500/40 hover:text-blue-100";
   const linkActive = "bg-yellow-400/30 text-yellow-200";
   const linkActiveHover = "hover:bg-yellow-300/50 hover:text-yellow-100";
 
-  const location = useLocation();
-  const isActive = props.pathName === location.pathname;
-
   return (
     <Link
-      to={props.pathName}
+      to={pathName}
+      onClick={() => setMenuOpen && setMenuOpen(false)}
       className={`${linkNormal} ${isActive ? linkActive : linkHover} ${
         isActive ? linkActiveHover : ""
       }`}
     >
-      {props.title}
+      {title}
     </Link>
   );
 };
