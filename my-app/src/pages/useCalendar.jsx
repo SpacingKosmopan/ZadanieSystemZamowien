@@ -27,19 +27,26 @@ export function useCalendar() {
    * @example addEvent({ year: 2023, month: 12, day: 24 }, { title: "Christmas Party", description: "At my place!" });
    */
   const addEvent = ({ year, month, day }, data) => {
-    if (day < 1 || month < 1 || month > 12 || month > 12) {
+    if (day < 1 || month < 1 || month > 12) {
       console.error("Tried to create Event in non existing day!");
       return;
     }
+
     setCalendar((prev) => {
       const updated = { ...prev };
       if (!updated[year]) updated[year] = {};
       if (!updated[year][month]) updated[year][month] = {};
       if (!updated[year][month][day]) updated[year][month][day] = [];
+
       const exists = updated[year][month][day].some(
         (event) => event.title === data.title
       );
-      if (!exists) updated[year][month][day].push(data);
+      if (!exists) {
+        updated[year][month][day].push({
+          ...data,
+          status: data.status || "do zrealizowania", // domyślny status
+        });
+      }
       return updated;
     });
   };

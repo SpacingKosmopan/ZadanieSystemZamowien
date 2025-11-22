@@ -43,6 +43,7 @@ export const CalendarPage = () => {
     price: "",
     description: "",
     client: "",
+    status: "",
   });
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export const CalendarPage = () => {
         price: selectedEvent.price || "",
         description: selectedEvent.description || "",
         client: selectedEvent.client || "",
+        status: selectedEvent.status || "do zrealizowania",
       });
       setIsEditing(false);
     }
@@ -155,6 +157,12 @@ export const CalendarPage = () => {
                 <h2 className="text-xl font-bold mb-4">
                   {selectedEvent.title}
                 </h2>
+                {selectedEvent.status && (
+                  <p className="mb-2 font-medium text-blue-700">
+                    Status: {selectedEvent.status}
+                  </p>
+                )}
+
                 {selectedEvent.price != null && (
                   <p className="mb-2 font-semibold text-green-700">
                     Cena: {selectedEvent.price} zł
@@ -229,6 +237,19 @@ export const CalendarPage = () => {
                     }
                     className="border px-2 py-1 rounded"
                   />
+                  <select
+                    value={editData.status || "do zrealizowania"}
+                    onChange={(e) =>
+                      setEditData({ ...editData, status: e.target.value })
+                    }
+                    className="border px-2 py-1 rounded"
+                  >
+                    <option value="do zrealizowania">Do zrealizowania</option>
+                    <option value="w trakcie realizacji">
+                      W trakcie realizacji
+                    </option>
+                    <option value="zrealizowane">Zrealizowane</option>
+                  </select>
                   <input
                     type="number"
                     placeholder="Cena"
@@ -338,22 +359,45 @@ const RenderMonthGrid = (props) => {
 
         {/* Wydarzenia */}
         <div className="flex-1 overflow-y-auto space-y-[2px]">
-          {events.map((event, i) => (
-            <div
-              key={i}
-              onClick={() =>
-                setSelectedEvent({
-                  ...event,
-                  year: currentMonth.year,
-                  month: currentMonth.month,
-                  day: n_day,
-                })
-              }
-              className="p-[2px] bg-blue-100 rounded text-[10px] shadow-sm cursor-pointer hover:bg-blue-200 transition"
-            >
-              {event.title}
-            </div>
-          ))}
+          {events.map((event, i) => {
+            const eventDate = new Date(
+              currentMonth.year,
+              currentMonth.month - 1,
+              n_day
+            );
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            let bgColor = "bg-blue-100"; // domyślny dla do zrealizowania
+
+            if (event.status === "zrealizowane") {
+              bgColor = "bg-gray-400 text-white";
+            } else if (event.status === "w trakcie realizacji") {
+              bgColor = "bg-yellow-300";
+            }
+
+            // Jeżeli przeszłe i nie zrealizowane → czerwone
+            if (eventDate < yesterday && event.status !== "zrealizowane") {
+              bgColor = "bg-red-300 text-white";
+            }
+
+            return (
+              <div
+                key={i}
+                onClick={() =>
+                  setSelectedEvent({
+                    ...event,
+                    year: currentMonth.year,
+                    month: currentMonth.month,
+                    day: n_day,
+                  })
+                }
+                className={`p-[2px] rounded text-[10px] shadow-sm cursor-pointer hover:opacity-80 transition ${bgColor}`}
+              >
+                {event.title}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
