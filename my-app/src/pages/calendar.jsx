@@ -54,6 +54,7 @@ export const CalendarPage = () => {
         description: selectedEvent.description || "",
         client: selectedEvent.client || "",
         status: selectedEvent.status || "do zrealizowania",
+        image: selectedEvent.image || null,
       });
       setIsEditing(false);
     }
@@ -154,37 +155,104 @@ export const CalendarPage = () => {
           <div className="relative bg-white p-6 rounded-xl shadow-xl max-w-md w-full z-10">
             {!isEditing ? (
               <>
-                <h2 className="text-xl font-bold mb-4">
-                  {selectedEvent.title}
-                </h2>
-                {selectedEvent.status && (
-                  <p className="mb-2 font-medium text-blue-700">
-                    Status: {selectedEvent.status}
-                  </p>
-                )}
+                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50">
+                  <div className="relative bg-white p-6 rounded-xl shadow-xl max-w-5xl w-full flex flex-col gap-6">
+                    <div className="flex gap-6">
+                      {/* Lewa kolumna: dane zamówienia */}
+                      <div className="flex-1 flex flex-col gap-4">
+                        <h2 className="text-2xl font-bold">
+                          {selectedEvent.title}
+                        </h2>
+                        {selectedEvent.price != null && (
+                          <p className="font-semibold text-green-700">
+                            Cena: {selectedEvent.price} zł
+                          </p>
+                        )}
+                        {selectedEvent.description && (
+                          <p>{selectedEvent.description}</p>
+                        )}
+                        {selectedEvent.client && (
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/clients?selected=${selectedEvent.client.id}`
+                              )
+                            }
+                            className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition"
+                          >
+                            🔍 {selectedEvent.client}
+                          </button>
+                        )}
+                        {selectedEvent.status && (
+                          <p className="font-medium">
+                            Status:{" "}
+                            <span
+                              className={
+                                selectedEvent.status === "Zrealizowane"
+                                  ? "text-gray-700"
+                                  : selectedEvent.status ===
+                                    "W trakcie realizacji"
+                                  ? "text-yellow-600"
+                                  : "text-red-600"
+                              }
+                            >
+                              {selectedEvent.status}
+                            </span>
+                          </p>
+                        )}
+                      </div>
 
-                {selectedEvent.price != null && (
-                  <p className="mb-2 font-semibold text-green-700">
-                    Cena: {selectedEvent.price} zł
-                  </p>
-                )}
-                {selectedEvent.description && (
-                  <p className="mb-2 text-gray-700">
-                    {selectedEvent.description}
-                  </p>
-                )}
-                {selectedEvent.client && (
-                  <div className="mb-4">
-                    <button
-                      onClick={() =>
-                        navigate(`/clients?selected=${selectedEvent.client.id}`)
-                      }
-                      className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded hover:bg-gray-300 transition"
-                    >
-                      🔍 {selectedEvent.client}
-                    </button>
+                      {/* Prawa kolumna: podgląd zdjęcia */}
+                      {selectedEvent.image && (
+                        <div className="w-80 flex-shrink-0">
+                          <img
+                            src={selectedEvent.image}
+                            alt="Podgląd"
+                            className="w-full h-full object-contain cursor-pointer rounded border"
+                            onClick={() => setShowImageModal(true)}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Przyciski na dole */}
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                      >
+                        ✏️ Edytuj
+                      </button>
+                      <button
+                        onClick={() => {
+                          const confirmDelete = window.confirm(
+                            `Czy na pewno chcesz usunąć wydarzenie: ${selectedEvent.title}?`
+                          );
+                          if (confirmDelete) {
+                            removeEvent(
+                              {
+                                year: selectedEvent.year,
+                                month: selectedEvent.month,
+                                day: selectedEvent.day,
+                              },
+                              selectedEvent.title
+                            );
+                            setSelectedEvent(null);
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                      >
+                        ❌ Usuń
+                      </button>
+                      <button
+                        onClick={() => setSelectedEvent(null)}
+                        className="px-4 py-2 bg-blue-600 rounded text-white hover:bg-blue-700"
+                      >
+                        Zamknij
+                      </button>
+                    </div>
                   </div>
-                )}
+                </div>
 
                 {/* Przyciski */}
                 <div className="flex gap-2 mb-4">
@@ -226,98 +294,144 @@ export const CalendarPage = () => {
               </>
             ) : (
               <>
-                <h2 className="text-xl font-bold mb-4">Edytuj wydarzenie</h2>
-                <div className="flex flex-col gap-3">
-                  <input
-                    type="text"
-                    placeholder="Tytuł"
-                    value={editData.title || ""}
-                    onChange={(e) =>
-                      setEditData({ ...editData, title: e.target.value })
-                    }
-                    className="border px-2 py-1 rounded"
-                  />
-                  <select
-                    value={editData.status || "do zrealizowania"}
-                    onChange={(e) =>
-                      setEditData({ ...editData, status: e.target.value })
-                    }
-                    className="border px-2 py-1 rounded"
-                  >
-                    <option value="do zrealizowania">Do zrealizowania</option>
-                    <option value="w trakcie realizacji">
-                      W trakcie realizacji
-                    </option>
-                    <option value="zrealizowane">Zrealizowane</option>
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Cena"
-                    value={editData.price || ""}
-                    onChange={(e) =>
-                      setEditData({
-                        ...editData,
-                        price: Number(e.target.value),
-                      })
-                    }
-                    className="border px-2 py-1 rounded"
-                  />
-                  <textarea
-                    placeholder="Opis"
-                    value={editData.description || ""}
-                    onChange={(e) =>
-                      setEditData({ ...editData, description: e.target.value })
-                    }
-                    className="border px-2 py-1 rounded"
-                  />
-                  <select
-                    value={editData.client}
-                    onChange={(e) =>
-                      setEditData({ ...editData, client: e.target.value })
-                    }
-                    className="border px-2 py-1 rounded"
-                  >
-                    <option value="">-- Wybierz klienta --</option>
-                    {clients
-                      .sort((a, b) => a.surname.localeCompare(b.surname))
-                      .map((client, i) => (
-                        <option
-                          key={i}
-                          value={`${client.name} ${client.surname}`}
+                {isEditing && selectedEvent && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50">
+                    <div className="relative bg-white p-6 rounded-xl shadow-xl max-w-5xl w-full flex flex-col gap-6">
+                      <div className="flex gap-6">
+                        {/* Lewa kolumna: pola edycji */}
+                        <div className="flex-1 flex flex-col gap-4">
+                          <input
+                            type="text"
+                            placeholder="Tytuł"
+                            value={editData.title || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                title: e.target.value,
+                              })
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Cena"
+                            value={editData.price || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                price: Number(e.target.value),
+                              })
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          />
+                          <textarea
+                            placeholder="Opis"
+                            value={editData.description || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                description: e.target.value,
+                              })
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          />
+                          <select
+                            value={editData.client || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                client: e.target.value,
+                              })
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          >
+                            <option value="">-- Wybierz klienta --</option>
+                            {clients
+                              .sort((a, b) =>
+                                a.surname.localeCompare(b.surname)
+                              )
+                              .map((client, i) => (
+                                <option
+                                  key={i}
+                                  value={`${client.name} ${client.surname}`}
+                                >
+                                  {client.name} {client.surname}
+                                </option>
+                              ))}
+                          </select>
+                          <select
+                            value={editData.status || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                status: e.target.value,
+                              })
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          >
+                            <option value="Do realizacji">Do realizacji</option>
+                            <option value="W trakcie realizacji">
+                              W trakcie realizacji
+                            </option>
+                            <option value="Zrealizowane">Zrealizowane</option>
+                          </select>
+                          <input
+                            type="file"
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                image: e.target.files?.[0]
+                                  ? URL.createObjectURL(e.target.files[0])
+                                  : null,
+                              })
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          />
+                        </div>
+
+                        {/* Prawa kolumna: podgląd zdjęcia */}
+                        {editData.image && (
+                          <div className="w-80 flex-shrink-0">
+                            <img
+                              src={editData.image}
+                              alt="Podgląd"
+                              className="w-full h-full object-contain cursor-pointer rounded border"
+                              onClick={() => setShowImageModal(true)}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Przyciski na dole */}
+                      <div className="flex gap-2 mt-4">
+                        <button
+                          onClick={() => {
+                            updateEvent(
+                              {
+                                year: selectedEvent.year,
+                                month: selectedEvent.month,
+                                day: selectedEvent.day,
+                              },
+                              selectedEvent.title,
+                              editData
+                            );
+                            setSelectedEvent({ ...selectedEvent, ...editData });
+                            setIsEditing(false);
+                          }}
+                          className="flex-1 px-3 py-2 bg-green-200 text-green-800 rounded hover:bg-green-300 transition"
                         >
-                          {client.name} {client.surname}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                <div className="flex gap-2 mt-4">
-                  <button
-                    onClick={() => {
-                      updateEvent(
-                        {
-                          year: selectedEvent.year,
-                          month: selectedEvent.month,
-                          day: selectedEvent.day,
-                        },
-                        selectedEvent.title,
-                        editData
-                      );
-                      setSelectedEvent({ ...selectedEvent, ...editData });
-                      setIsEditing(false);
-                    }}
-                    className="flex-1 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition"
-                  >
-                    💾 Zapisz
-                  </button>
-
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="flex-1 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
-                  >
-                    ↩ Anuluj
-                  </button>
-                </div>
+                          💾 Zapisz
+                        </button>
+                        <button
+                          onClick={() => setIsEditing(false)}
+                          className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+                        >
+                          ↩ Anuluj
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
