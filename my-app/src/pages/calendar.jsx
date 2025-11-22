@@ -14,6 +14,7 @@ export const CalendarPage = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [showImage, setShowImage] = useState(true);
 
   const daysInMonths = {
     1: 31,
@@ -390,14 +391,21 @@ export const CalendarPage = () => {
                         </div>
 
                         {/* Prawa kolumna: podgląd zdjęcia */}
-                        {editData.image && (
-                          <div className="w-80 flex-shrink-0">
+                        {/* Prawa kolumna: podgląd zdjęcia */}
+                        {editData.image && showImage && (
+                          <div className="w-80 flex-shrink-0 relative">
                             <img
                               src={editData.image}
                               alt="Podgląd"
                               className="w-full h-full object-contain cursor-pointer rounded border"
                               onClick={() => setShowImageModal(true)}
                             />
+                            <button
+                              onClick={() => setShowImage(false)}
+                              className="absolute top-1 right-1 bg-red-100 px-2 py-1 rounded text-red-700 text-sm hover:bg-red-200 transition"
+                            >
+                              ❌ Schowaj
+                            </button>
                           </div>
                         )}
                       </div>
@@ -462,11 +470,20 @@ const RenderMonthGrid = (props) => {
   for (let n_day = 1; n_day <= daysInMonth; n_day++) {
     const dayData = month.find((d) => d.day === n_day);
     const events = dayData?.events || [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isToday =
+      n_day === today.getDate() &&
+      currentMonth.month - 1 === today.getMonth() &&
+      currentMonth.year === today.getFullYear();
 
     days.push(
       <div
         key={n_day}
-        className="border h-20 bg-white flex flex-col p-[2px] overflow-hidden text-[11px]"
+        className={`border h-20 flex flex-col p-[2px] overflow-hidden text-[11px] ${
+          isToday ? "bg-lime-100" : "bg-white"
+        }`}
       >
         {/* Numer dnia */}
         <div className="font-semibold mb-1 text-[12px]">{n_day}</div>
@@ -481,18 +498,29 @@ const RenderMonthGrid = (props) => {
             );
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-            let bgColor = "bg-blue-100"; // domyślny dla do zrealizowania
+            let bgColor = "bg-blue-100";
+            let textColor = "";
 
-            if (event.status === "zrealizowane") {
-              bgColor = "bg-gray-400 text-white";
-            } else if (event.status === "w trakcie realizacji") {
+            if (event.status === "Zrealizowane")
+              (bgColor = "bg-gray-400"), (textColor = "text-white");
+            else if (event.status === "W trakcie realizacji")
               bgColor = "bg-yellow-300";
+
+            if (eventDate < yesterday && event.status !== "Zrealizowane") {
+              bgColor = "bg-red-400";
+              textColor = "text-white";
             }
 
-            // Jeżeli przeszłe i nie zrealizowane → czerwone
-            if (eventDate < yesterday && event.status !== "zrealizowane") {
-              bgColor = "bg-red-300 text-white";
+            if (
+              eventDate.getFullYear() === today.getFullYear() &&
+              eventDate.getMonth() === today.getMonth() &&
+              eventDate.getDate() === today.getDate()
+            ) {
+              bgColor = "bg-lime-400";
+              textColor = "text-white";
             }
 
             return (
@@ -506,7 +534,7 @@ const RenderMonthGrid = (props) => {
                     day: n_day,
                   })
                 }
-                className={`p-[2px] rounded text-[10px] shadow-sm cursor-pointer hover:opacity-80 transition ${bgColor}`}
+                className={`p-[2px] rounded text-[10px] shadow-sm cursor-pointer hover:opacity-90 transition ${bgColor} ${textColor}`}
               >
                 {event.title}
               </div>
