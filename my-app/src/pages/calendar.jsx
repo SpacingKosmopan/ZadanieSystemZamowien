@@ -14,7 +14,6 @@ export const CalendarPage = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
-  const [showImage, setShowImage] = useState(true);
 
   const daysInMonths = {
     1: 31,
@@ -55,7 +54,6 @@ export const CalendarPage = () => {
         description: selectedEvent.description || "",
         client: selectedEvent.client || "",
         status: selectedEvent.status || "do zrealizowania",
-        image: selectedEvent.image || null,
       });
       setIsEditing(false);
     }
@@ -202,18 +200,6 @@ export const CalendarPage = () => {
                           </p>
                         )}
                       </div>
-
-                      {/* Prawa kolumna: podgląd zdjęcia */}
-                      {selectedEvent.image && (
-                        <div className="w-80 flex-shrink-0">
-                          <img
-                            src={selectedEvent.image}
-                            alt="Podgląd"
-                            className="w-full h-full object-contain cursor-pointer rounded border"
-                            onClick={() => setShowImageModal(true)}
-                          />
-                        </div>
-                      )}
                     </div>
 
                     {/* Przyciski na dole */}
@@ -376,38 +362,7 @@ export const CalendarPage = () => {
                             </option>
                             <option value="Zrealizowane">Zrealizowane</option>
                           </select>
-                          <input
-                            type="file"
-                            onChange={(e) =>
-                              setEditData({
-                                ...editData,
-                                image: e.target.files?.[0]
-                                  ? URL.createObjectURL(e.target.files[0])
-                                  : null,
-                              })
-                            }
-                            className="border px-2 py-1 rounded w-full"
-                          />
                         </div>
-
-                        {/* Prawa kolumna: podgląd zdjęcia */}
-                        {/* Prawa kolumna: podgląd zdjęcia */}
-                        {editData.image && showImage && (
-                          <div className="w-80 flex-shrink-0 relative">
-                            <img
-                              src={editData.image}
-                              alt="Podgląd"
-                              className="w-full h-full object-contain cursor-pointer rounded border"
-                              onClick={() => setShowImageModal(true)}
-                            />
-                            <button
-                              onClick={() => setShowImage(false)}
-                              className="absolute top-1 right-1 bg-red-100 px-2 py-1 rounded text-red-700 text-sm hover:bg-red-200 transition"
-                            >
-                              ❌ Schowaj
-                            </button>
-                          </div>
-                        )}
                       </div>
 
                       {/* Przyciski na dole */}
@@ -423,6 +378,7 @@ export const CalendarPage = () => {
                               selectedEvent.title,
                               editData
                             );
+
                             setSelectedEvent({ ...selectedEvent, ...editData });
                             setIsEditing(false);
                           }}

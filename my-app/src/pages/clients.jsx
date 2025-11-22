@@ -2,29 +2,28 @@ import { useState } from "react";
 import { NewClientPage } from "./newClient";
 import { ClientsContext } from "../App";
 import { useContext } from "react";
-import { useSearchParams } from "react-router-dom";
 
-export const ClientsPage = () => {
+export const ClientsPage = ({ isLoggedIn, loading }) => {
   const [createClient, setCreateClient] = useState(false);
-  const { clients, setClients } = useContext(ClientsContext);
+  const { clients, addClient, updateClient, removeClient } =
+    useContext(ClientsContext);
 
-  const [searchParams] = useSearchParams();
-  const selectedId = searchParams.get("selected");
-
-  const highlightedClient = selectedId
-    ? clients.find((c) => String(c.id) === String(selectedId))
-    : null;
+  if (!isLoggedIn)
+    return (
+      <p className="text-red-600 font-bold">
+        Zaloguj się, aby zobaczyć klientów
+      </p>
+    );
+  if (loading) return <p>Ładowanie danych klientów...</p>;
 
   const deleteClient = (client) => {
-    const confirmDelete = window.confirm(
-      "Czy jesteś pewien, że chchesz usunąć " +
-        client.name +
-        " " +
-        client.surname +
-        "?"
-    );
-    if (confirmDelete)
-      setClients((prev) => prev.filter((_client) => _client !== client));
+    if (
+      window.confirm(
+        `Czy jesteś pewien, że chcesz usunąć ${client.name} ${client.surname}?`
+      )
+    ) {
+      removeClient(client.id);
+    }
   };
 
   return (
@@ -36,28 +35,18 @@ export const ClientsPage = () => {
         Dodaj nowego klienta
       </button>
 
-      {highlightedClient && (
-        <div className="p-4 mb-6 bg-yellow-100 border-l-4 border-yellow-500 rounded shadow">
-          <h2 className="text-xl font-bold">
-            Wybrany klient: {highlightedClient.name} {highlightedClient.surname}
-          </h2>
-          <p className="text-gray-700">Telefon: {highlightedClient.phone}</p>
-          <p className="text-gray-700">Email: {highlightedClient.email}</p>
-          <p className="text-gray-700">Adres: {highlightedClient.adress}</p>
-        </div>
-      )}
-
       {createClient ? (
         <NewClientPage
           clients={clients}
-          setClients={setClients}
+          addClient={addClient}
+          updateClient={updateClient}
           setCreateClient={setCreateClient}
         />
       ) : clients.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {clients.map((client, index) => (
+          {clients.map((client) => (
             <div
-              key={index}
+              key={client.id}
               className="bg-white p-4 rounded shadow hover:shadow-lg transition-shadow"
             >
               <h2 className="text-lg font-bold text-gray-800 flex justify-between items-center">
@@ -66,7 +55,7 @@ export const ClientsPage = () => {
                 </span>
                 <button
                   onClick={() => deleteClient(client)}
-                  className="px-2 py-1 bg-orange-200 text-white rounded hover:bg-green-700 text-sm"
+                  className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700 text-sm"
                 >
                   ❌
                 </button>

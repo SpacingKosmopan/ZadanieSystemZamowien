@@ -1,15 +1,26 @@
-import { MainCalendarContext } from "../App";
+import { MainCalendarContext, ClientsContext } from "../App";
 import { useContext } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { ClientsContext } from "../App";
 
-export const OrdersPage = (props) => {
+/**
+ * OrdersPage component
+ * Dodawanie zamówień do Firestore / kalendarza
+ */
+export const OrdersPage = ({ isLoggedIn }) => {
   const { addEvent } = useContext(MainCalendarContext);
   const { clients } = useContext(ClientsContext);
   const navigate = useNavigate();
+
+  if (!isLoggedIn) {
+    return (
+      <p className="text-red-600 font-bold">
+        Zaloguj się, aby dodać nowe zamówienia
+      </p>
+    );
+  }
 
   const schema = yup.object().shape({
     title: yup.string().required("Musisz podać tytuł zamówienia"),
@@ -21,17 +32,17 @@ export const OrdersPage = (props) => {
     description: yup.string().required("Musisz podać treść zamówienia"),
     client: yup
       .string()
-      .required("Musisz podać nazwę klienta")
+      .required("Musisz podać klienta")
       .oneOf(
         clients.map((c) => `${c.name} ${c.surname}`),
         "Taki klient nie istnieje"
       ),
   });
 
-  const ConfirmedNewSubmit = (data) => {
+  const confirmedNewSubmit = (data) => {
     const [year, month, day] = data.date.split("-").map(Number);
     addEvent(
-      { year: year, month: month, day: day },
+      { year, month, day },
       {
         title: data.title,
         price: data.price,
@@ -43,19 +54,18 @@ export const OrdersPage = (props) => {
   };
 
   return (
-    <div>
-      <NewOrderPage schema={schema} confirmedNewSubmit={ConfirmedNewSubmit} />
-    </div>
+    <NewOrderPage schema={schema} confirmedNewSubmit={confirmedNewSubmit} />
   );
 };
 
 const NewOrderPage = ({ schema, confirmedNewSubmit }) => {
+  const { clients } = useContext(ClientsContext);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
-  const { clients } = useContext(ClientsContext);
 
   return (
     <div className="p-6 bg-white rounded shadow-md max-w-lg mx-auto mt-6">
@@ -73,13 +83,14 @@ const NewOrderPage = ({ schema, confirmedNewSubmit }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-red-500 text-sm mt-1">{errors.title?.message}</p>
+
         <input
           type="date"
-          placeholder="Data..."
           {...register("date")}
           className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-red-500 text-sm mt-1">{errors.date?.message}</p>
+
         <input
           type="number"
           step={0.01}
@@ -88,6 +99,7 @@ const NewOrderPage = ({ schema, confirmedNewSubmit }) => {
           className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-red-500 text-sm mt-1">{errors.price?.message}</p>
+
         <textarea
           placeholder="Treść..."
           {...register("description")}
@@ -96,18 +108,20 @@ const NewOrderPage = ({ schema, confirmedNewSubmit }) => {
         <p className="text-red-500 text-sm mt-1">
           {errors.description?.message}
         </p>
+
         <select
           {...register("client")}
           className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Wybierz klienta</option>
-          {clients.map((client, index) => (
-            <option key={index} value={`${client.name} ${client.surname}`}>
+          {clients.map((client) => (
+            <option key={client.id} value={`${client.name} ${client.surname}`}>
               {client.name} {client.surname}
             </option>
           ))}
         </select>
         <p className="text-red-500 text-sm mt-1">{errors.client?.message}</p>
+
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
@@ -118,5 +132,3 @@ const NewOrderPage = ({ schema, confirmedNewSubmit }) => {
     </div>
   );
 };
-
-const EditOrderPage = () => {};

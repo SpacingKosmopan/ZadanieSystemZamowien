@@ -1,133 +1,122 @@
 import { useState, useEffect } from "react";
+import { db } from "../firebase";
+import {
+  collection,
+  getDocs,
+  setDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 
 /**
- * This hook allows user to create callendar and manage events
+ * This hook allows user to create calendar and manage events in Firebase
+ * only if the user is logged in
+ * @param {object|null} user - Firebase user object
  * @returns {{
  * calendar: object,
  * addEvent: Function,
  * getDay: Function,
- * getMonth: Function
+ * getMonth: Function,
+ * removeEvent: Function,
+ * updateEvent: Function,
+ * isLoggedIn: boolean
  * }} Calendar management
  */
-export function useCalendar() {
-  const [calendar, setCalendar] = useState(() => {
-    const savedCalendar = localStorage.getItem("calendar");
-    return savedCalendar ? JSON.parse(savedCalendar) : {};
-  });
+export function useCalendar(user) {
+  const [calendar, setCalendar] = useState({});
+  const isLoggedIn = !!user;
+  const calendarCollection = collection(db, "calendar");
 
   useEffect(() => {
-    localStorage.setItem("calendar", JSON.stringify(calendar));
-  }, [calendar]);
-
-  /**
-   * This function allows user to create new event in calendar. Every event mush have a unique title per day, other data is optional
-   * @param {{ year:number, month:number, day:number }} DateObject - When event is happening
-   * @param {{ title: string, description: string }} data - Event details (title, and e.x. price, description)
-   * @returns {void}
-   * @example addEvent({ year: 2023, month: 12, day: 24 }, { title: "Christmas Party", description: "At my place!" });
-   */
-  const addEvent = ({ year, month, day }, data) => {
-    if (day < 1 || month < 1 || month > 12) {
-      console.error("Tried to create Event in non existing day!");
+    if (!isLoggedIn) {
+      setCalendar({});
       return;
     }
 
-    setCalendar((prev) => {
-      const updated = { ...prev };
-      if (!updated[year]) updated[year] = {};
-      if (!updated[year][month]) updated[year][month] = {};
-      if (!updated[year][month][day]) updated[year][month][day] = [];
+    const fetchCalendar = async () => {
+      const snapshot = await getDocs(calendarCollection);
+      const data = {};
+      snapshot.forEach((docSnap) => {
+        data[docSnap.id] = docSnap.data();
+      });
+      setCalendar(data);
+    };
+    fetchCalendar();
+  }, [isLoggedIn]);
 
-      const exists = updated[year][month][day].some(
-        (event) => event.title === data.title
-      );
-      if (!exists) {
-        updated[year][month][day].push({
-          ...data,
-          status: data.status || "do zrealizowania", // domyślny status
-        });
-      }
-      return updated;
-    });
+  const addEvent = async ({ year, month, day }, data) => {
+    if (!isLoggedIn) return alert("Zaloguj się, aby zarządzać kalendarzem!");
+    const docId = `${year}-${month}-${day}`;
+    const dayEvents = calendar[docId]?.events || [];
+    const exists = dayEvents.some((event) => event.title === data.title);
+    if (!exists) {
+      const updatedEvents = [
+        ...dayEvents,
+        { ...data, status: data.status || "do zrealizowania" },
+      ];
+      await setDoc(doc(db, "calendar", docId), { events: updatedEvents });
+      setCalendar((prev) => ({ ...prev, [docId]: { events: updatedEvents } }));
+    }
   };
 
-  /**
-   * This function allows user to create new event in calendar. Every event mush have a unique title per day, other data is optional
-   * @param {{ year:number, month:number, day:number }} DateObject - When event is happening
-   * @param {{ title: string }} title - Title of event to remove
-   * @returns {void}
-   * @example removeEvent({ year: 2023, month: 12, day: 24 }, "Christmas Party");
-   */
-  const removeEvent = ({ year, month, day }, title) => {
+  const removeEvent = async ({ year, month, day }, title) => {
+    if (!isLoggedIn) return alert("Zaloguj się, aby zarządzać kalendarzem!");
     const removeConfirm = window.confirm(
       "Czy na pewno chcesz usunąć to wydarzenie?"
     );
-    if (removeConfirm) {
+    if (!removeConfirm) return;
+
+    const docId = `${year}-${month}-${day}`;
+    const dayEvents = calendar[docId]?.events || [];
+    const filteredEvents = dayEvents.filter((event) => event.title !== title);
+
+    if (filteredEvents.length === 0) {
+      await deleteDoc(doc(db, "calendar", docId));
       setCalendar((prev) => {
         const updated = { ...prev };
-        if (
-          !updated?.[year] ||
-          !updated?.[year]?.[month] ||
-          !updated?.[year]?.[month]?.[day]
-        ) {
-          console.error("Tried to remove non existing event!");
-          return prev;
-        }
-        updated[year][month][day] = updated[year][month][day].filter(
-          (event) => event.title !== title
-        );
+        delete updated[docId];
         return updated;
       });
-    } else return;
+    } else {
+      await updateDoc(doc(db, "calendar", docId), { events: filteredEvents });
+      setCalendar((prev) => ({ ...prev, [docId]: { events: filteredEvents } }));
+    }
   };
 
-  /**
-   *
-   * @param {*} param0
-   * @param {*} oldTitle
-   * @param {*} newData
-   */
-  const updateEvent = ({ year, month, day }, oldTitle, newData) => {
-    setCalendar((prev) => {
-      const updated = { ...prev };
-      const dayEvents = updated?.[year]?.[month]?.[day] ?? [];
-      const eventIndex = dayEvents.findIndex((e) => e.title === oldTitle);
-      if (eventIndex === -1) {
-        console.error("Nie znaleziono wydarzenia do edycji!");
-        return prev;
-      }
-      // Nadpisanie istniejącego wydarzenia
-      updated[year][month][day][eventIndex] = {
-        ...dayEvents[eventIndex],
-        ...newData,
-      };
-      return updated;
-    });
+  const updateEvent = async ({ year, month, day }, oldTitle, newData) => {
+    if (!isLoggedIn) return alert("Zaloguj się, aby zarządzać kalendarzem!");
+    const docId = `${year}-${month}-${day}`;
+    const dayEvents = calendar[docId]?.events || [];
+    const eventIndex = dayEvents.findIndex((e) => e.title === oldTitle);
+    if (eventIndex === -1) return;
+
+    const updatedEvents = [...dayEvents];
+    updatedEvents[eventIndex] = { ...updatedEvents[eventIndex], ...newData };
+    await updateDoc(doc(db, "calendar", docId), { events: updatedEvents });
+    setCalendar((prev) => ({ ...prev, [docId]: { events: updatedEvents } }));
   };
 
-  /**
-   * @param {{ year:number, month:number, day:number }} DateObject - When event is happening
-   * @returns {Array|null} Array of events in day
-   * @example getDay({ year: 2023, month: 12, day: 24 }) -> [ { title: "Christmas Party", description: "At my place!" } ] | null
-   */
-  const getDay = ({ year, month, day }) => {
-    return calendar?.[year]?.[month]?.[day] ?? null;
-  };
+  const getDay = ({ year, month, day }) =>
+    isLoggedIn ? calendar[`${year}-${month}-${day}`]?.events ?? null : null;
 
-  /**
-   * @param {{ year:number, month:number }} DateObject - When event is happening
-   * @returns {{ day: number, events: Array }[]} Array of days -> each day has array of events
-   * @example getMonth({ year: 2023, month: 12 }) -> [ { day: 24, events: [ { title: "Christmas Party", description: "At my place!" } ] } ]
-   */
-  const getMonth = ({ year, month }) => {
-    const monthData = calendar?.[year]?.[month];
-    if (!monthData) return [];
-    return Object.entries(monthData).map(([day, events]) => ({
-      day: Number(day),
-      events,
-    }));
-  };
-  // {console.log(month[0]?.events.map((e) => e.title))}
+  const getMonth = ({ year, month }) =>
+    isLoggedIn
+      ? Object.entries(calendar)
+          .filter(([docId]) => docId.startsWith(`${year}-${month}-`))
+          .map(([docId, value]) => ({
+            day: Number(docId.split("-")[2]),
+            events: value.events,
+          }))
+      : [];
 
-  return { calendar, addEvent, getDay, getMonth, removeEvent, updateEvent };
+  return {
+    calendar,
+    addEvent,
+    removeEvent,
+    updateEvent,
+    getDay,
+    getMonth,
+    isLoggedIn,
+  };
 }
